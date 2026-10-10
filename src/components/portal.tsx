@@ -37,6 +37,7 @@ import {
   Trash2,
   X,
   Clapperboard,
+  Receipt,
 } from "lucide-react";
 import { Wordmark } from "@/components/site";
 import { AiSupportAssistant } from "@/components/ai-support";
@@ -62,6 +63,20 @@ const studentNav = [
   { href: "/support", label: "Expert support", icon: Headphones },
   { href: "/community", label: "Community", icon: UsersRound },
   { href: "/account", label: "Account", icon: Settings },
+];
+// Phone bottom bar: four everyday destinations plus "More".
+const mobilePrimaryNav = [
+  { href: "/dashboard", label: "Overview", icon: Home },
+  { href: "/learn", label: "Learn", icon: BookOpen },
+  { href: "/reviews", label: "Practice", icon: MessageSquareText },
+  { href: "/community", label: "Community", icon: UsersRound },
+];
+const mobileMoreNav = [
+  { href: "/mentorship", label: "Mentorship", hint: "6-week AI-to-Income programme", icon: Sparkles },
+  { href: "/support", label: "Expert support", hint: "Book 1-on-1 help", icon: Headphones },
+  { href: "/notifications", label: "Notifications", hint: "Updates and reminders", icon: Bell },
+  { href: "/account/purchases", label: "Purchases", hint: "Orders and receipts", icon: Receipt },
+  { href: "/account", label: "Account", hint: "Profile and preferences", icon: Settings },
 ];
 const extract = (v: any, key: string) =>
   Array.isArray(v) ? v : asArray(v?.[key]);
@@ -201,6 +216,14 @@ export function StudentShell({ children }: { children: ReactNode }) {
   const [communityEnabled, setCommunityEnabled] = useState(false);
   const [signOut, setSignOut] = useState(false);
   const [search, setSearch] = useState("");
+  const [moreOpen, setMoreOpen] = useState(false);
+  useEffect(() => setMoreOpen(false), [pathname]);
+  useEffect(() => {
+    if (!moreOpen) return;
+    const close = (event: KeyboardEvent) => event.key === "Escape" && setMoreOpen(false);
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
+  }, [moreOpen]);
   useEffect(() => {
     getData("me")
       .then(async (r) => {
@@ -356,17 +379,82 @@ export function StudentShell({ children }: { children: ReactNode }) {
         className="student-bottom-nav"
         aria-label="Mobile learning navigation"
       >
-        {studentNav.filter((n) => ["/dashboard", "/learn", "/community", "/support", "/account"].includes(n.href) && (communityEnabled || n.href !== "/community")).map((n) => (
+        {mobilePrimaryNav.filter((n) => communityEnabled || n.href !== "/community").map((n) => (
           <Link
             key={n.href}
             href={n.href}
             aria-current={active === n.href ? "page" : undefined}
           >
             <n.icon size={18} />
-            <span>{n.label.split(" ")[0]}</span>
+            <span>{n.label}</span>
           </Link>
         ))}
+        <button
+          type="button"
+          className="student-bottom-more"
+          aria-haspopup="dialog"
+          aria-expanded={moreOpen}
+          aria-current={!moreOpen && mobileMoreNav.some((n) => n.href === active) ? "page" : undefined}
+          onClick={() => setMoreOpen((open) => !open)}
+        >
+          <MoreHorizontal size={18} />
+          <span>More</span>
+        </button>
       </nav>
+      {moreOpen && (
+        <div className="student-more-layer" onClick={() => setMoreOpen(false)}>
+          <div
+            className="student-more-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-label="More sections"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="student-more-head">
+              <strong>More</strong>
+              <button type="button" className="icon-button icon-button-small" aria-label="Close" onClick={() => setMoreOpen(false)}>
+                <X size={15} />
+              </button>
+            </div>
+            <div className="student-more-list">
+              {mobileMoreNav.map((n) => (
+                <Link
+                  key={n.href}
+                  href={n.href}
+                  aria-current={active === n.href ? "page" : undefined}
+                  onClick={() => setMoreOpen(false)}
+                >
+                  <span className="student-more-icon"><n.icon size={17} /></span>
+                  <span className="student-more-copy">
+                    <strong>{n.label}</strong>
+                    <small>{n.hint}</small>
+                  </span>
+                  <ChevronRight size={16} />
+                </Link>
+              ))}
+              {accountRole === "ADMIN" && (
+                <Link href="/admin" onClick={() => setMoreOpen(false)}>
+                  <span className="student-more-icon"><Shield size={17} /></span>
+                  <span className="student-more-copy">
+                    <strong>Admin centre</strong>
+                    <small>Manage the platform</small>
+                  </span>
+                  <ChevronRight size={16} />
+                </Link>
+              )}
+            </div>
+            <button
+              type="button"
+              className="btn btn-outline btn-small student-more-logout"
+              onClick={logout}
+              disabled={signOut}
+            >
+              <LogOut size={15} />
+              {signOut ? "Signing out…" : "Log out"}
+            </button>
+          </div>
+        </div>
+      )}
       <AiSupportAssistant mode="learner" />
     </div>
   );
