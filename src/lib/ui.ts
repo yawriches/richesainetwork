@@ -56,10 +56,18 @@ export const localDateTimeValue = (v: unknown) => {
   const offset = d.getTimezoneOffset();
   return new Date(d.getTime() - offset * 60_000).toISOString().slice(0, 16);
 };
+// Older database notifications point at "/student/..." pages that never
+// existed. Map them to the real learner routes.
+const legacyPath = (path: string) =>
+  path
+    .replace(/^\/student\/courses\/([^/?#]+)/, "/marketplace/$1")
+    .replace(/^\/student\/purchases/, "/account/purchases")
+    .replace(/^\/student\/reviews\/[^/?#]+/, "/reviews")
+    .replace(/^\/student\/(account|support|reviews)/, "/$1");
 export const safeResourceHref = (value: unknown) => {
   if (typeof value !== "string" || !value.trim()) return null;
   const v = value.trim();
-  if (v.startsWith("/") && !v.startsWith("//")) return v;
+  if (v.startsWith("/") && !v.startsWith("//")) return legacyPath(v);
   try {
     const u = new URL(v);
     return u.protocol === "https:" || u.protocol === "http:"

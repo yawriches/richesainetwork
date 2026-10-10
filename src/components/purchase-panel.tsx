@@ -90,12 +90,15 @@ export function PurchasePanel({
       p.currencies?.includes(price?.currency) &&
       (!plan || plan.providers?.includes(p.code)),
   );
+  // With a single ready provider there is nothing to choose.
+  const selectedProvider =
+    provider || (providers.length === 1 ? providers[0].code : "");
   async function purchase() {
     setBusy(true);
     setError("");
     const result = await postAction("checkout", {
       price_id: price.id,
-      provider,
+      provider: selectedProvider,
       country_code: country,
     });
     setBusy(false);
@@ -147,7 +150,7 @@ export function PurchasePanel({
           </label>
         </div>
       )}
-      <strong>{money(price.amount, price.currency, precision)}</strong>
+      <strong className="purchase-price">{money(price.amount, price.currency, precision)}</strong>
       {plan && (
         <p className="field-hint" style={{ margin: 0 }}>
           Manual renewal. Each purchase adds a paid period; this is not
@@ -161,7 +164,7 @@ export function PurchasePanel({
               Payment provider
               <select
                 className="select"
-                value={provider}
+                value={selectedProvider}
                 onChange={(e) => setProvider(e.target.value)}
               >
                 <option value="">Choose a ready provider</option>
@@ -181,7 +184,7 @@ export function PurchasePanel({
           <button
             className="btn"
             onClick={purchase}
-            disabled={busy || !provider}
+            disabled={busy || !selectedProvider}
           >
             {busy ? "Opening secure checkout…" : label}
             <ArrowRight size={15} />

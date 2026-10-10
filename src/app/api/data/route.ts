@@ -602,6 +602,90 @@ export async function GET(request: NextRequest) {
       );
       if (!access.can_access) throw new Error(access.reason || "PAID_MEMBERSHIP_REQUIRED");
     }
+    if (resource === "marketplace") {
+      // One authenticated read for the learner catalogue: published courses,
+      // the learner's eligible price per course, and what they already own.
+      const country = profile?.country_code || null;
+      const [courseRows, enrolledRows, member, currencyRows, countryRow, lessonRows] =
+        await Promise.all([
+          db
+            .from("courses")
+            .select(
+              "id,title,slug,description,thumbnail_url,instructor,category,level,access_type,featured,estimated_minutes,objectives,prerequisites,product_id,created_at",
+            )
+            .eq("status", "PUBLISHED")
+            .order("featured", { ascending: false })
+            .order("created_at", { ascending: false })
+            .limit(200),
+          db.from("enrollments").select("course_id").eq("user_id", user.id).limit(500),
+          db.rpc("has_membership", { p_user_id: user.id }),
+          db.from("currencies").select("code,minor_units"),
+          country
+            ? db.from("countries").select("code,currency_code").eq("code", country).eq("active", true).maybeSingle()
+            : Promise.resolve({ data: null, error: null }),
+          db.from("public_curriculum").select("course_id,lesson_id").limit(10000),
+        ]);
+      const courses = checked(courseRows) || [];
+      const productIds = courses.map((c: any) => c.product_id).filter(Boolean);
+      const priceRows = productIds.length
+        ? checked(
+            await db
+              .from("product_prices")
+              .select("id,product_id,amount,currency,country_code,starts_at,ends_at,sort_order,status")
+              .in("product_id", productIds)
+              .eq("status", "ACTIVE")
+              .limit(1000),
+          ) || []
+        : [];
+      const owned = new Set((checked(enrolledRows) || []).map((e: any) => e.course_id));
+      const minorUnits = new Map(
+        (checked(currencyRows) || []).map((c: any) => [c.code, c.minor_units]),
+      );
+      const learnerCurrency = (checked(countryRow) as any)?.currency_code || null;
+      const lessons = new Map<string, number>();
+      for (const row of checked(lessonRows) || [])
+        lessons.set(row.course_id, (lessons.get(row.course_id) || 0) + 1);
+      const now = Date.now();
+      const eligible = (p: any) =>
+        (!p.starts_at || new Date(p.starts_at).getTime() <= now) &&
+        (!p.ends_at || new Date(p.ends_at).getTime() > now) &&
+        (!p.country_code || p.country_code === country) &&
+        (!learnerCurrency || p.currency === learnerCurrency);
+      const memberActive = checked(member) === true;
+      const items = courses.map((course: any) => {
+        const access = String(course.access_type || "").toUpperCase();
+        const options = priceRows
+          .filter((p: any) => p.product_id === course.product_id && eligible(p))
+          .sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0) || Number(a.amount) - Number(b.amount));
+        const price = options[0];
+        return {
+          ...course,
+          access_type: access,
+          lesson_count: lessons.get(course.id) || 0,
+          owned: owned.has(course.id),
+          included: access === "MEMBERSHIP" && memberActive,
+          price: price
+            ? {
+                id: price.id,
+                amount: price.amount,
+                currency: price.currency,
+                minor_units: minorUnits.get(price.currency),
+              }
+            : null,
+        };
+      });
+      return NextResponse.json(
+        {
+          data: {
+            courses: items,
+            country_code: country,
+            member_active: memberActive,
+          },
+          configured: true,
+        },
+        { headers },
+      );
+    }
     if (resource === "dashboard") {
       const [
         enrollments,

@@ -351,16 +351,35 @@ export async function POST(request: NextRequest) {
           order = checked(
             await session.db
               .from("orders")
-              .select("reference,provider")
+              .select("reference,provider,product_id")
               .eq("reference", ref)
               .eq("user_id", user.id)
               .single(),
           );
-        data = await verifyAndFulfill(
+        const result = await verifyAndFulfill(
           order.provider as Provider,
           ref,
           `reconcile:${ref}`,
         );
+        // Tell the return page where the learner should go next.
+        const purchased = checked(
+          await session.db
+            .from("products")
+            .select("type")
+            .eq("id", order.product_id)
+            .maybeSingle(),
+        );
+        const course =
+          purchased?.type === "COURSE"
+            ? checked(
+                await session.db
+                  .from("courses")
+                  .select("id,title,slug")
+                  .eq("product_id", order.product_id)
+                  .maybeSingle(),
+              )
+            : null;
+        data = { ...result, product_type: purchased?.type || null, course };
       } else if (action === "notification_read")
         data = checked(
           await session.db

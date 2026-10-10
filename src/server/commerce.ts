@@ -178,7 +178,9 @@ export async function checkout(session: any, payload: any) {
       minorUnits: currency.minor_units,
       email: user.email!,
       name: profile.name || "Riches AI learner",
-      returnUrl: `${origin}/payment/return`,
+      // Include our own reference so the return page works for every provider,
+      // including ones that do not append it to the redirect.
+      returnUrl: `${origin}/payment/return?reference=${encodeURIComponent(reference)}`,
       webhookUrl: `${origin}/api/webhooks/${provider.toLowerCase()}`,
       metadata: { "order-id": order.id },
       methods: providerConfig.methods,

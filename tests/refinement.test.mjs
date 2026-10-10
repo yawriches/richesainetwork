@@ -9,11 +9,11 @@ test("managed Preview uses the stable Webpack development transport", () => {
   assert.match(packageJson.scripts.dev, /next dev --webpack/);
 });
 
-test("learner search routes a typed query to the existing courses catalogue", () => {
+test("learner search routes a typed query to the learner marketplace", () => {
   const portal = read("src/components/portal.tsx");
   assert.match(portal, /className="portal-search"/);
   assert.match(portal, /aria-label="Search courses and resources"/);
-  assert.match(portal, /\/courses\?search=\$\{encodeURIComponent\(value\)\}/);
+  assert.match(portal, /\/marketplace\?search=\$\{encodeURIComponent\(value\)\}/);
   assert.doesNotMatch(portal, /<span>Search courses, resources\.\.\.<\/span>/);
 });
 
@@ -130,10 +130,21 @@ test("AI support preparation keeps protected retrieval authorization-aware", () 
   assert.match(brief, /WhatsApp/);
 });
 
-test("mentorship replaces the marketplace in the route manifest", () => {
+test("route manifest lists mentorship and the learner course marketplace", () => {
   const manifest = JSON.parse(read("public/manus-routes.json"));
   assert.ok(manifest.routes.some((route) => route.path === "/mentorship"));
-  assert.ok(!manifest.routes.some((route) => route.path === "/marketplace"));
+  assert.ok(manifest.routes.some((route) => route.path === "/marketplace"));
+  assert.ok(manifest.routes.some((route) => route.path === "/marketplace/:slug"));
+});
+
+test("marketplace checkout reuses the verified server checkout and returns with a reference", () => {
+  const market = read("src/components/marketplace.tsx");
+  const commerce = read("src/server/commerce.ts");
+  const data = read("src/app/api/data/route.ts");
+  assert.match(market, /<PurchasePanel/);
+  assert.match(market, /postAction\("enroll"/);
+  assert.match(data, /resource === "marketplace"/);
+  assert.match(commerce, /payment\/return\?reference=\$\{encodeURIComponent\(reference\)\}/);
 });
 
 test("six-week mentorship applications are private and administrator-reviewed", () => {

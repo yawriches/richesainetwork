@@ -19,7 +19,7 @@ Use the pinned package manager in `package.json`, then `pnpm install --frozen-lo
 
 `pnpm typecheck`, `pnpm test`, and `pnpm build` are the standard source checks. Development and production build directories are isolated to prevent hydration corruption. Docker installs dependencies and builds without private database access, then runs the standalone server with ffprobe/ffmpeg for genuine media inspection; a Docker image itself was not built/deployed in this milestone.
 
-`GET /api/health` is unauthenticated. `public/manus-routes.json` declares 26 current page patterns; APIs and callback/system endpoints are excluded. Preview uses secure cross-site cookies. Browser third-party-cookie policies can still require opening Preview directly.
+`GET /api/health` is unauthenticated. `public/manus-routes.json` declares 28 current page patterns; APIs and callback/system endpoints are excluded. Preview uses secure cross-site cookies. Browser third-party-cookie policies can still require opening Preview directly.
 
 ## Verification boundaries
 

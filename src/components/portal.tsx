@@ -38,6 +38,7 @@ import {
   X,
   Clapperboard,
   Receipt,
+  Store,
 } from "lucide-react";
 import { Wordmark } from "@/components/site";
 import { AiSupportAssistant } from "@/components/ai-support";
@@ -58,6 +59,7 @@ import {
 const studentNav = [
   { href: "/dashboard", label: "Overview", icon: Home },
   { href: "/learn", label: "My learning", icon: BookOpen },
+  { href: "/marketplace", label: "Marketplace", icon: Store },
   { href: "/mentorship", label: "Mentorship", icon: Sparkles },
   { href: "/reviews", label: "Practice reviews", icon: MessageSquareText },
   { href: "/support", label: "Expert support", icon: Headphones },
@@ -68,10 +70,11 @@ const studentNav = [
 const mobilePrimaryNav = [
   { href: "/dashboard", label: "Overview", icon: Home },
   { href: "/learn", label: "Learn", icon: BookOpen },
+  { href: "/marketplace", label: "Courses", icon: Store },
   { href: "/reviews", label: "Practice", icon: MessageSquareText },
-  { href: "/community", label: "Community", icon: UsersRound },
 ];
 const mobileMoreNav = [
+  { href: "/community", label: "Community", hint: "Posts, drops and events", icon: UsersRound },
   { href: "/mentorship", label: "Mentorship", hint: "6-week AI-to-Income programme", icon: Sparkles },
   { href: "/support", label: "Expert support", hint: "Book 1-on-1 help", icon: Headphones },
   { href: "/notifications", label: "Notifications", hint: "Updates and reminders", icon: Bell },
@@ -282,7 +285,9 @@ export function StudentShell({ children }: { children: ReactNode }) {
     ? "/learn"
     : pathname.startsWith("/reviews/")
       ? "/reviews"
-      : pathname.startsWith("/community/")
+      : pathname.startsWith("/marketplace/")
+        ? "/marketplace"
+        : pathname.startsWith("/community/")
         ? "/community"
         : pathname.startsWith("/account/")
           ? "/account"
@@ -336,13 +341,13 @@ export function StudentShell({ children }: { children: ReactNode }) {
       </aside>
       <main className="portal-main">
         <div className="portal-topbar">
-          <form
+          {pathname.startsWith("/marketplace") ? <span /> : <form
             className="portal-search"
             role="search"
             onSubmit={(event) => {
               event.preventDefault();
               const value = search.trim();
-              router.push(value ? `/courses?search=${encodeURIComponent(value)}` : "/courses");
+              router.push(value ? `/marketplace?search=${encodeURIComponent(value)}` : "/marketplace");
             }}
           >
             <Search size={17} />
@@ -352,7 +357,7 @@ export function StudentShell({ children }: { children: ReactNode }) {
               placeholder="Search courses, resources..."
               aria-label="Search courses and resources"
             />
-          </form>
+          </form>}
           <div className="portal-topbar-actions">
             <Link
               href="/notifications"
@@ -379,7 +384,7 @@ export function StudentShell({ children }: { children: ReactNode }) {
         className="student-bottom-nav"
         aria-label="Mobile learning navigation"
       >
-        {mobilePrimaryNav.filter((n) => communityEnabled || n.href !== "/community").map((n) => (
+        {mobilePrimaryNav.map((n) => (
           <Link
             key={n.href}
             href={n.href}
@@ -417,7 +422,7 @@ export function StudentShell({ children }: { children: ReactNode }) {
               </button>
             </div>
             <div className="student-more-list">
-              {mobileMoreNav.map((n) => (
+              {mobileMoreNav.filter((n) => communityEnabled || n.href !== "/community").map((n) => (
                 <Link
                   key={n.href}
                   href={n.href}
