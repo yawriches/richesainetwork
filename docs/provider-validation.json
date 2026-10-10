@@ -1,0 +1,21 @@
+{
+  "checkedAt": "2026-10-06T01:47:23.325Z",
+  "results": [
+    {
+      "provider": "PAYSTACK",
+      "currency": "GHS",
+      "mode": "TEST",
+      "initializationPassed": true,
+      "host": "checkout.paystack.com",
+      "completedPayment": false
+    },
+    {
+      "provider": "KORA",
+      "currency": "GHS",
+      "mode": "TEST",
+      "initializationPassed": true,
+      "host": "test-checkout.korapay.com",
+      "completedPayment": false
+    }
+  ]
+}

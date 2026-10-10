@@ -1,0 +1,54 @@
+{
+  "checkedAt": "2026-10-06T02:32:32.632Z",
+  "checks": [
+    {
+      "name": "Real authenticated POST login and session cookies",
+      "passed": true
+    },
+    {
+      "name": "Country, interest, and experience onboarding persist",
+      "passed": true
+    },
+    {
+      "name": "Idempotent free enrollment",
+      "passed": true
+    },
+    {
+      "name": "Entitled lesson access and second-student denial",
+      "passed": true
+    },
+    {
+      "name": "Completion, resume/progress and real recognition",
+      "passed": true
+    },
+    {
+      "name": "Student cannot read the admin user directory",
+      "passed": true
+    },
+    {
+      "name": "Actual invalid media rejected despite claimed video MIME",
+      "passed": true
+    },
+    {
+      "name": "Actual probed private upload and concurrent last-credit protection",
+      "passed": true
+    },
+    {
+      "name": "Second student cannot see private review or signed video",
+      "passed": true
+    },
+    {
+      "name": "PAYSTACK actual test checkout/pending verification grants no membership",
+      "passed": true
+    },
+    {
+      "name": "KORA actual test checkout/pending verification grants no membership",
+      "passed": true
+    },
+    {
+      "name": "Only disposable fixtures cleaned; existing owner data untouched",
+      "passed": true
+    }
+  ],
+  "noCompletedPayments": true
+}
